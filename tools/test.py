@@ -33,7 +33,7 @@ import models
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Train keypoints network')
+    parser = argparse.ArgumentParser(description='Test keypoints network')
     # general
     parser.add_argument('--cfg',
                         help='experiment configure file name',
@@ -70,8 +70,14 @@ def main():
     args = parse_args()
     update_config(cfg, args)
 
+    name_task = ''
+    if cfg.DATASET.TEST_SET == 'val':
+        name_task = 'val'
+    else:
+        name_task = 'test'
+
     logger, final_output_dir, tb_log_dir = create_logger(
-        cfg, args.cfg, 'valid')
+        cfg, args.cfg, name_task) # 'valid'
 
     logger.info(pprint.pformat(args))
     logger.info(cfg)
@@ -95,7 +101,9 @@ def main():
         logger.info('=> loading model from {}'.format(model_state_file))
         model.load_state_dict(torch.load(model_state_file))
 
-    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
+    
+    # model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
+    model = torch.nn.DataParallel(model, device_ids=[0]).cuda()
 
     # define loss function (criterion) and optimizer
     criterion = JointsMSELoss(
@@ -117,7 +125,7 @@ def main():
         valid_dataset,
         batch_size=cfg.TEST.BATCH_SIZE_PER_GPU*len(cfg.GPUS),
         shuffle=False,
-        num_workers=cfg.WORKERS,
+        num_workers=0,#cfg.WORKERS,
         pin_memory=True
     )
 

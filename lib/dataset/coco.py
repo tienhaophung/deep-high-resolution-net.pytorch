@@ -84,6 +84,7 @@ class COCODataset(JointsDataset):
 
         # load image file names
         self.image_set_index = self._load_image_set_index()
+        print(self.image_set_index)
         self.num_images = len(self.image_set_index)
         logger.info('=> num_images: {}'.format(self.num_images))
 
@@ -111,12 +112,19 @@ class COCODataset(JointsDataset):
 
     def _get_ann_file_keypoint(self):
         """ self.root / annotations / person_keypoints_train2017.json """
+        if 'test' in self.image_set:
+            name_set =  'test-dev2017'
+        else:
+            name_set = self.image_set
+
+        # name_set = self.image_set
+
         prefix = 'person_keypoints' \
-            if 'test' not in self.image_set else 'image_info'
+            if 'test' not in name_set else 'image_info'
         return os.path.join(
             self.root,
             'annotations',
-            prefix + '_' + self.image_set + '.json'
+            prefix + '_' + name_set + '.json'
         )
 
     def _load_image_set_index(self):
